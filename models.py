@@ -23,6 +23,6 @@ class User(Base):
     first_name = Column(String)
     last_name = Column(String)
     hashed_password = Column(String)
-    isActive = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=False)
 
     todos = relationship("Todo", back_populates="owner")

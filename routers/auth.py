@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import Depends, HTTPException, APIRouter
 from typing import Optional
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 import models
-import models as md
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from database import localSession
@@ -35,21 +34,25 @@ def getDB():
         db.close()
 
 
-app = FastAPI()
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth"],
+    responses={401 : {"User": "Not authorized"}}
+)
 
-@app.get("/users")
+@router.get("/users")
 async def get_all_users(db: Session = Depends(getDB)):
     return db.query(models.User).all()
 
 
-@app.get("/users/{username}")
+@router.get("/users/{username}")
 async def get_user(username: str, db: Session = Depends(getDB)):
     return db.query(models.User).filter(models.User.username == username).first()
 
 
-@app.post("/users/create_user")
+@router.post("/users/create_user")
 async def create_user(user: User, db: Session = Depends(getDB)):
-    user_model = md.User()
+    user_model = models.User()
     user_model.email = user.email
     user_model.username = user.username
     user_model.first_name = user.first_name
@@ -76,7 +79,7 @@ def create_access_token(username: str, user_id: int, expires_in: Optional[timede
     return jwt.encode(encode, SECRET_KEY, ALGORITHM)
 
 
-@app.post("/tokens")
+@router.post("/tokens")
 async def get_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(getDB)):
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
