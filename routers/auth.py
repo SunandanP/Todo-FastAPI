@@ -40,33 +40,6 @@ router = APIRouter(
     responses={401 : {"User": "Not authorized"}}
 )
 
-@router.get("/users")
-async def get_all_users(db: Session = Depends(getDB)):
-    return db.query(models.User).all()
-
-
-@router.get("/users/{username}")
-async def get_user(username: str, db: Session = Depends(getDB)):
-    return db.query(models.User).filter(models.User.username == username).first()
-
-
-@router.post("/users/create_user")
-async def create_user(user: User, db: Session = Depends(getDB)):
-    user_model = models.User()
-    user_model.email = user.email
-    user_model.username = user.username
-    user_model.first_name = user.first_name
-    user_model.last_name = user.last_name
-    user_model.hashed_password = hashPassword(user.password)
-    user_model.isActive = True
-
-    db.add(user_model)
-    db.commit()
-    return {
-        "status": 201,
-        "detail": "User created Successfully!"
-    }
-
 
 def create_access_token(username: str, user_id: int, expires_in: Optional[timedelta] = None):
     encode = {"sub": username, "id": user_id}

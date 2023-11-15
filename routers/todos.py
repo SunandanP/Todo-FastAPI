@@ -1,15 +1,21 @@
 from typing import Optional
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, HTTPException, APIRouter, Request
 import models
 from database import engine, localSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from routers.auth import get_current_user
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
-router = APIRouter()
+router = APIRouter(
+    tags=["todos"],
+    responses={404 : {"Todo": "Not found"}}
+)
 
 models.Base.metadata.create_all(bind=engine)
 
+templates = Jinja2Templates(directory="templates")
 
 class Todo(BaseModel):
     id: int = Field()
@@ -29,6 +35,10 @@ def getDB():
 def user_not_found(user):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
+
+@router.get("/test")
+async def get_test(request : Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
 # particular todos
 @router.get("/todo/")
